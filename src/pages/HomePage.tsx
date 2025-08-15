@@ -3,18 +3,14 @@ import Timer from '../components/Timer';
 import SessionHistory from '../components/SessionHistory';
 import DayVisualization from '../components/DayVisualization'; // Uncommented DayVisualization import
 import { Session, FocusPeriod, BreakPeriod } from '../types/Session';
+import { Settings } from '../types/Settings';
 
-enum TimerStatus {
-  STOPPED = 'STOPPED',
-  FOCUS = 'FOCUS',
-  BREAK = 'BREAK',
-}
 
 interface HomePageProps {
   sessions: Session[];
   handleSessionEnd: (session: Session) => void;
   // Props from App.tsx for Timer
-  timerStatus: TimerStatus;
+  timerStatus: any;
   focusTime: number;
   breakTime: number;
   totalFocusTime: number;
@@ -31,6 +27,8 @@ interface HomePageProps {
   startBreak: () => void;
   resumeFocus: () => void;
   endSession: () => void;
+  settings: Settings;
+  breakDuration: number;
 }
 
 const HomePage: React.FC<HomePageProps> = ({
@@ -53,6 +51,8 @@ const HomePage: React.FC<HomePageProps> = ({
   endSession,
   dailyTotals,
   currentDate,
+  settings,
+  breakDuration,
 }) => {
   const todayTotals = dailyTotals[currentDate] || { totalFocus: 0, totalBreak: 0 };
 
@@ -84,6 +84,8 @@ const HomePage: React.FC<HomePageProps> = ({
         startBreak={startBreak}
         resumeFocus={resumeFocus}
         endSession={endSession}
+        settings={settings}
+        breakDuration={breakDuration}
       />
 
       

@@ -1,15 +1,12 @@
 import React from 'react';
 import { Session, FocusPeriod, BreakPeriod } from '../types/Session';
 
-enum TimerStatus {
-  STOPPED = 'STOPPED',
-  FOCUS = 'FOCUS',
-  BREAK = 'BREAK',
-}
+import { Settings } from '../types/Settings';
+
 
 interface TimerProps {
   onSessionEnd: (session: Session) => void;
-  timerStatus: TimerStatus;
+  timerStatus: any;
   focusTime: number;
   breakTime: number;
   totalFocusTime: number;
@@ -24,6 +21,8 @@ interface TimerProps {
   startBreak: () => void;
   resumeFocus: () => void;
   endSession: () => void;
+  settings: Settings;
+  breakDuration: number;
 }
 
 const Timer: React.FC<TimerProps> = ({
@@ -43,12 +42,14 @@ const Timer: React.FC<TimerProps> = ({
   startBreak,
   resumeFocus,
   endSession,
+  settings,
+  breakDuration,
 }) => {
 
   const renderTimerDisplay = () => {
-    if (timerStatus === TimerStatus.FOCUS) {
+    if (timerStatus === 'FOCUS') {
       return formatTime(focusTime);
-    } else if (timerStatus === TimerStatus.BREAK) {
+    } else if (timerStatus === 'BREAK') {
       return formatTime(breakTime);
     }
     return formatTime(0); // When stopped, display 00:00:00
@@ -61,16 +62,16 @@ const Timer: React.FC<TimerProps> = ({
         {renderTimerDisplay()}
       </div>
       <div className="buttons">
-        {timerStatus === TimerStatus.STOPPED && (
+        {timerStatus === 'STOPPED' && (
           <button onClick={startSession}>Start Session</button>
         )}
-        {timerStatus === TimerStatus.FOCUS && (
+        {timerStatus === 'FOCUS' && (
           <>
             <button onClick={startBreak}>Start Break</button>
             <button onClick={endSession}>End Session</button>
           </>
         )}
-        {timerStatus === TimerStatus.BREAK && (
+        {timerStatus === 'BREAK' && (
           <>
             <button onClick={resumeFocus}>Resume Focus</button>
             <button onClick={endSession}>End Session</button>
@@ -82,8 +83,9 @@ const Timer: React.FC<TimerProps> = ({
         <h2>Live Stats (Current Session)</h2>
         <p>Total Focus Time: {formatTime(totalFocusTime)}</p>
         <p>Total Break Time: {formatTime(totalBreakTime)}</p>
-        {timerStatus === TimerStatus.FOCUS && <p>Current Focus Period: {formatTime(focusTime)}</p>}
-        {timerStatus === TimerStatus.BREAK && <p>Current Break Period: {formatTime(breakTime)}</p>}
+        {settings.breakPreset !== 'default' && <p>Remaining Break Time: {formatTime(breakTime)}</p>}
+        {timerStatus === 'FOCUS' && <p>Current Focus Period: {formatTime(focusTime)}</p>}
+        {timerStatus === 'BREAK' && <p>Current Break Period: {formatTime(breakTime)}</p>}
       </div>
     </div>
   );

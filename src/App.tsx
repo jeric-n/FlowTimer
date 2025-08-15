@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import AllHistoryPage from './pages/AllHistoryPage';
+import SettingsPage from './pages/SettingsPage';
 import { Session, FocusPeriod, BreakPeriod } from './types/Session';
+import { Settings } from './types/Settings';
 import './index.css';
 
 enum TimerStatus {
@@ -11,8 +13,11 @@ enum TimerStatus {
   BREAK = 'BREAK',
 }
 
+
+
 const LOCAL_STORAGE_KEY = 'flowtimer_sessions';
 const DAILY_TOTALS_LOCAL_STORAGE_KEY = 'flowtimer_daily_totals';
+const SETTINGS_LOCAL_STORAGE_KEY = 'flowtimer_settings';
 
 const startFocusSound = new Audio('/sounds/Start_Focus.mp3');
 const breakTimeSound = new Audio('/sounds/Break_Time.mp3');
@@ -29,6 +34,11 @@ function App() {
     return storedDailyTotals ? JSON.parse(storedDailyTotals) : {};
   });
 
+  const [settings, setSettings] = useState<Settings>(() => {
+    const storedSettings = localStorage.getItem(SETTINGS_LOCAL_STORAGE_KEY);
+    return storedSettings ? JSON.parse(storedSettings) : { breakPreset: 'default' };
+  });
+
   // Timer related states
   const [timerStatus, setTimerStatus] = useState<TimerStatus>(TimerStatus.STOPPED);
   const [focusTime, setFocusTime] = useState(0);
@@ -39,81 +49,7 @@ function App() {
   const [currentPeriodStartTime, setCurrentPeriodStartTime] = useState<string | null>(null);
   const [focusPeriods, setFocusPeriods] = useState<FocusPeriod[]>([]);
   const [breakPeriods, setBreakPeriods] = useState<BreakPeriod[]>([]);
-
-  // Timer useEffect
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    if (timerStatus === TimerStatus.FOCUS) {
-      interval = setInterval(() => {
-        setFocusTime((prevTime) => prevTime + 1);
-        setTotalFocusTime((prevTotal) => prevTotal + 1);
-      }, 1000);
-    } else if (timerStatus === TimerStatus.BREAK) {
-      interval = setInterval(() => {
-        setBreakTime((prevTime) => prevTime + 1);
-        setTotalBreakTime((prevTotal) => prevTotal + 1);
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [timerStatus]);
-
-  // Helper function (from Timer.tsx)
-  const formatTime = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const secs = totalSeconds % 60;
-    return [hours, minutes, secs]
-      .map((v) => (v < 10 ? '0' + v : v))
-      .filter((v, i) => v !== '00' || i > 0)
-      .join(':');
-  };
-
-  // Timer control functions (from Timer.tsx)
-  const recordCurrentPeriod = () => {
-    if (currentPeriodStartTime) {
-      const endTime = new Date().toISOString();
-      const duration = Math.floor((new Date(endTime).getTime() - new Date(currentPeriodStartTime).getTime()) / 1000);
-
-      if (timerStatus === TimerStatus.FOCUS) {
-        setFocusPeriods((prev) => [...prev, { startTime: currentPeriodStartTime, endTime, duration }]);
-      } else if (timerStatus === TimerStatus.BREAK) {
-        setBreakPeriods((prev) => [...prev, { startTime: currentPeriodStartTime, endTime, duration }]);
-      }
-    }
-  };
-
-  const startSession = () => {
-    startFocusSound.play();
-    setTimerStatus(TimerStatus.FOCUS);
-    setFocusTime(0);
-    setBreakTime(0);
-    setTotalFocusTime(0);
-    setTotalBreakTime(0);
-    setFocusPeriods([]);
-    setBreakPeriods([]);
-    setCurrentSessionStartTime(new Date().toISOString());
-    setCurrentPeriodStartTime(new Date().toISOString());
-  };
-
-  const startBreak = () => {
-    breakTimeSound.play();
-    recordCurrentPeriod(); // Record the completed focus period
-    setFocusTime(0); // Reset current focus period timer
-    setTimerStatus(TimerStatus.BREAK);
-    setCurrentPeriodStartTime(new Date().toISOString());
-  };
-
-  const resumeFocus = () => {
-    startFocusSound.play();
-    recordCurrentPeriod(); // Record the completed break period
-    setBreakTime(0); // Reset current break period timer
-    setTimerStatus(TimerStatus.FOCUS);
-    setCurrentPeriodStartTime(new Date().toISOString());
-  };
+  const [breakDuration, setBreakDuration] = useState(0);
 
   const endSession = () => {
     if (currentSessionStartTime && currentPeriodStartTime) {
@@ -152,6 +88,108 @@ function App() {
     setCurrentPeriodStartTime(null);
   };
 
+  const formatTime = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    return [hours, minutes, secs]
+      .map((v) => (v < 10 ? '0' + v : v))
+      .filter((v, i) => v !== '00' || i > 0)
+      .join(':');
+  };
+
+  const recordCurrentPeriod = useCallback(() => {
+    if (currentPeriodStartTime) {
+      const endTime = new Date().toISOString();
+      const duration = Math.floor((new Date(endTime).getTime() - new Date(currentPeriodStartTime).getTime()) / 1000);
+
+      if (timerStatus === TimerStatus.FOCUS) {
+        setFocusPeriods((prev) => [...prev, { startTime: currentPeriodStartTime, endTime, duration }]);
+      } else if (timerStatus === TimerStatus.BREAK) {
+        setBreakPeriods((prev) => [...prev, { startTime: currentPeriodStartTime, endTime, duration }]);
+      }
+    }
+  }, [currentPeriodStartTime, timerStatus]);
+
+  const startSession = () => {
+    startFocusSound.play();
+    setTimerStatus(TimerStatus.FOCUS);
+    setFocusTime(0);
+    setBreakTime(0);
+    setTotalFocusTime(0);
+    setTotalBreakTime(0);
+    setFocusPeriods([]);
+    setBreakPeriods([]);
+    setCurrentSessionStartTime(new Date().toISOString());
+    setCurrentPeriodStartTime(new Date().toISOString());
+  };
+  const resumeFocus = useCallback(() => {
+    startFocusSound.play();
+    recordCurrentPeriod(); // Record the completed break period
+    setBreakTime(0); // Reset current break period timer
+    setTimerStatus(TimerStatus.FOCUS);
+    setCurrentPeriodStartTime(new Date().toISOString());
+  }, [recordCurrentPeriod]);
+
+  const startBreak = () => {
+    breakTimeSound.play();
+    recordCurrentPeriod(); // Record the completed focus period
+    setFocusTime(0); // Reset current focus period timer
+
+    const lastFocusDuration = focusPeriods.length > 0 ? focusPeriods[focusPeriods.length - 1].duration : 0;
+    let duration = 0;
+    if (settings.breakPreset === 'preset2') {
+      duration = Math.max(60, lastFocusDuration / 5);
+    } else if (settings.breakPreset === 'preset3') {
+      if (lastFocusDuration < 25 * 60) {
+        duration = 5 * 60;
+      } else if (lastFocusDuration >= 25 * 60 && lastFocusDuration <= 50 * 60) {
+        duration = 8 * 60;
+      } else {
+        duration = 10 * 60;
+      }
+    }
+
+    setBreakDuration(duration);
+    setBreakTime(duration);
+    setTimerStatus(TimerStatus.BREAK);
+    setCurrentPeriodStartTime(new Date().toISOString());
+  };
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (timerStatus === TimerStatus.FOCUS) {
+      interval = setInterval(() => {
+        setFocusTime((prevTime) => prevTime + 1);
+        setTotalFocusTime((prevTotal) => prevTotal + 1);
+      }, 1000);
+    } else if (timerStatus === TimerStatus.BREAK) {
+      if (settings.breakPreset === 'default') {
+        interval = setInterval(() => {
+          setBreakTime((prevTime) => prevTime + 1);
+          setTotalBreakTime((prevTotal) => prevTotal + 1);
+        }, 1000);
+      } else {
+        interval = setInterval(() => {
+          setBreakTime((prevTime) => {
+            if (prevTime > 0) {
+              setTotalBreakTime((prevTotal) => prevTotal + 1);
+              return prevTime - 1;
+            } else {
+              resumeFocus();
+              return 0;
+            }
+          });
+        }, 1000);
+      }
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerStatus, settings.breakPreset, resumeFocus]);
+
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessions));
   }, [sessions]);
@@ -159,6 +197,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem(DAILY_TOTALS_LOCAL_STORAGE_KEY, JSON.stringify(dailyTotals));
   }, [dailyTotals]);
+
+  useEffect(() => {
+    localStorage.setItem(SETTINGS_LOCAL_STORAGE_KEY, JSON.stringify(settings));
+  }, [settings]);
 
   const handleSessionEnd = (session: Session) => {
     setSessions((prevSessions) => [...prevSessions, session]);
@@ -184,6 +226,10 @@ function App() {
     });
   };
 
+  const handleSettingsChange = (newSettings: Settings) => {
+    setSettings(newSettings);
+  };
+
   return (
     <Router>
       <div className="App">
@@ -194,6 +240,9 @@ function App() {
             </li>
             <li>
               <Link to="/history">All History</Link>
+            </li>
+            <li>
+              <Link to="/settings">Settings</Link>
             </li>
           </ul>
         </nav>
@@ -221,10 +270,13 @@ function App() {
                 startBreak={startBreak}
                 resumeFocus={resumeFocus}
                 endSession={endSession}
+                settings={settings}
+                breakDuration={breakDuration}
               />
             }
           />
           <Route path="/history" element={<AllHistoryPage sessions={sessions} onImportSessions={handleImportSessions} />} />
+          <Route path="/settings" element={<SettingsPage settings={settings} onSettingsChange={handleSettingsChange} />} />
         </Routes>
       </div>
     </Router>

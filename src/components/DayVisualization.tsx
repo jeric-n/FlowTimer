@@ -1,5 +1,5 @@
 import React from 'react';
-import { Session, FocusPeriod, BreakPeriod } from '../types/Session';
+import { Session } from '../types/Session';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface DayVisualizationProps {
