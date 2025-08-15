@@ -31,7 +31,7 @@ function App() {
   } = useTimer({ settings, onSessionEnd: handleSessionEnd });
 
   return (
-    <Router>
+    <Router basename={process.env.PUBLIC_URL}>
       <div className="App">
         <nav>
           <ul>

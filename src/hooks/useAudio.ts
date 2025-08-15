@@ -1,6 +1,6 @@
-const startFocusSound = new Audio('/sounds/Start_Focus.mp3');
-const breakTimeSound = new Audio('/sounds/Break_Time.mp3');
-const endSessionSound = new Audio('/sounds/End_Session.mp3');
+const startFocusSound = new Audio(process.env.PUBLIC_URL + '/sounds/Start_Focus.mp3');
+const breakTimeSound = new Audio(process.env.PUBLIC_URL + '/sounds/Break_Time.mp3');
+const endSessionSound = new Audio(process.env.PUBLIC_URL + '/sounds/End_Session.mp3');
 
 export const useAudio = () => {
   const playStartFocusSound = () => {
