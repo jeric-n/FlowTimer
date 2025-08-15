@@ -29,7 +29,7 @@ function App() {
     return storedSessions ? JSON.parse(storedSessions) : [];
   });
 
-  const [dailyTotals, setDailyTotals] = useState<{[date: string]: {totalFocus: number, totalBreak: number}}>(() => {
+  const [dailyTotals, setDailyTotals] = useState<{ [date: string]: { totalFocus: number, totalBreak: number } }>(() => {
     const storedDailyTotals = localStorage.getItem(DAILY_TOTALS_LOCAL_STORAGE_KEY);
     return storedDailyTotals ? JSON.parse(storedDailyTotals) : {};
   });
@@ -51,28 +51,41 @@ function App() {
   const [breakPeriods, setBreakPeriods] = useState<BreakPeriod[]>([]);
   const [breakDuration, setBreakDuration] = useState(0);
 
+  const addPeriodToState = useCallback((period: FocusPeriod | BreakPeriod, type: 'focus' | 'break') => {
+    if (type === 'focus') {
+      setFocusPeriods((prev) => [...prev, period as FocusPeriod]);
+    } else if (type === 'break') {
+      setBreakPeriods((prev) => [...prev, period as BreakPeriod]);
+    }
+  }, []);
+
   const endSession = () => {
     if (currentSessionStartTime && currentPeriodStartTime) {
-      const endTime = new Date().toISOString();
-      const duration = Math.floor((new Date(endTime).getTime() - new Date(currentPeriodStartTime).getTime()) / 1000);
+      const finalPeriod = recordCurrentPeriod(); // Get the final ongoing period
 
-      let finalFocusPeriods = [...focusPeriods];
-      let finalBreakPeriods = [...breakPeriods];
+      let finalFocusPeriodsForSession = [...focusPeriods];
+      let finalBreakPeriodsForSession = [...breakPeriods];
 
-      if (timerStatus === TimerStatus.FOCUS) {
-        finalFocusPeriods.push({ startTime: currentPeriodStartTime, endTime, duration });
-      } else if (timerStatus === TimerStatus.BREAK) {
-        finalBreakPeriods.push({ startTime: currentPeriodStartTime, endTime, duration });
+      if (finalPeriod) {
+        if (timerStatus === TimerStatus.FOCUS) {
+          finalFocusPeriodsForSession.push(finalPeriod as FocusPeriod);
+        } else if (timerStatus === TimerStatus.BREAK) {
+          finalBreakPeriodsForSession.push(finalPeriod as BreakPeriod);
+        }
       }
+
+      // Calculate totalFocusTime and totalBreakTime from the periods that will be in the session object
+      const calculatedTotalFocusTime = finalFocusPeriodsForSession.reduce((sum, period) => sum + period.duration, 0);
+      const calculatedTotalBreakTime = finalBreakPeriodsForSession.reduce((sum, period) => sum + period.duration, 0);
 
       const session: Session = {
         id: Date.now().toString(),
         startTime: currentSessionStartTime,
         endTime: new Date().toISOString(),
-        totalFocusTime: totalFocusTime,
-        totalBreakTime: totalBreakTime,
-        focusPeriods: finalFocusPeriods,
-        breakPeriods: finalBreakPeriods,
+        totalFocusTime: calculatedTotalFocusTime,
+        totalBreakTime: calculatedTotalBreakTime,
+        focusPeriods: finalFocusPeriodsForSession,
+        breakPeriods: finalBreakPeriodsForSession,
       };
       handleSessionEnd(session); // Call the existing handleSessionEnd in App.tsx
     }
@@ -98,17 +111,18 @@ function App() {
       .join(':');
   };
 
-  const recordCurrentPeriod = useCallback(() => {
+  const recordCurrentPeriod = useCallback((): FocusPeriod | BreakPeriod | null => {
     if (currentPeriodStartTime) {
       const endTime = new Date().toISOString();
       const duration = Math.floor((new Date(endTime).getTime() - new Date(currentPeriodStartTime).getTime()) / 1000);
 
       if (timerStatus === TimerStatus.FOCUS) {
-        setFocusPeriods((prev) => [...prev, { startTime: currentPeriodStartTime, endTime, duration }]);
+        return { startTime: currentPeriodStartTime, endTime, duration };
       } else if (timerStatus === TimerStatus.BREAK) {
-        setBreakPeriods((prev) => [...prev, { startTime: currentPeriodStartTime, endTime, duration }]);
+        return { startTime: currentPeriodStartTime, endTime, duration };
       }
     }
+    return null;
   }, [currentPeriodStartTime, timerStatus]);
 
   const startSession = () => {
@@ -125,15 +139,21 @@ function App() {
   };
   const resumeFocus = useCallback(() => {
     startFocusSound.play();
-    recordCurrentPeriod(); // Record the completed break period
+    const completedBreakPeriod = recordCurrentPeriod(); // Get the completed break period
+    if (completedBreakPeriod) {
+      addPeriodToState(completedBreakPeriod, 'break');
+    }
     setBreakTime(0); // Reset current break period timer
     setTimerStatus(TimerStatus.FOCUS);
     setCurrentPeriodStartTime(new Date().toISOString());
-  }, [recordCurrentPeriod]);
+  }, [recordCurrentPeriod, addPeriodToState]);
 
   const startBreak = () => {
     breakTimeSound.play();
-    recordCurrentPeriod(); // Record the completed focus period
+    const completedFocusPeriod = recordCurrentPeriod(); // Get the completed focus period
+    if (completedFocusPeriod) {
+      addPeriodToState(completedFocusPeriod, 'focus');
+    }
     setFocusTime(0); // Reset current focus period timer
 
     const lastFocusDuration = focusPeriods.length > 0 ? focusPeriods[focusPeriods.length - 1].duration : 0;
@@ -171,24 +191,21 @@ function App() {
           setTotalBreakTime((prevTotal) => prevTotal + 1);
         }, 1000);
       } else {
-        interval = setInterval(() => {
-          setBreakTime((prevTime) => {
-            if (prevTime > 0) {
-              setTotalBreakTime((prevTotal) => prevTotal + 1);
-              return prevTime - 1;
-            } else {
-              resumeFocus();
-              return 0;
-            }
-          });
-        }, 1000);
+        if (breakTime > 0) {
+          interval = setInterval(() => {
+            setBreakTime((prevTime) => prevTime - 1);
+            setTotalBreakTime((prevTotal) => prevTotal + 1);
+          }, 1000);
+        } else {
+          resumeFocus();
+        }
       }
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [timerStatus, settings.breakPreset, resumeFocus]);
+  }, [timerStatus, settings.breakPreset, resumeFocus, breakTime]);
 
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessions));
