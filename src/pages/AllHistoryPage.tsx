@@ -1,6 +1,7 @@
 import React, { useState } from 'react'; // Import useState
 import { Session, FocusPeriod, BreakPeriod } from '../types/Session';
 import DayVisualization from '../components/DayVisualization'; // Import DayVisualization
+import { formatTime } from '../utils/timeUtils';
 
 interface AllHistoryPageProps {
   sessions: Session[];
@@ -155,15 +156,7 @@ const AllHistoryPage: React.FC<AllHistoryPageProps> = ({ sessions, onImportSessi
   };
 
 
-  const formatTime = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const secs = totalSeconds % 60;
-    return [hours, minutes, secs]
-      .map((v) => (v < 10 ? '0' + v : v))
-      .filter((v, i) => v !== '00' || i > 0)
-      .join(':');
-  };
+  
 
   const formatPeriod = (period: FocusPeriod | BreakPeriod) => {
     const start = new Date(period.startTime).toLocaleTimeString();

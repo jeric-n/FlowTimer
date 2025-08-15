@@ -6,6 +6,7 @@ import { Session, FocusPeriod, BreakPeriod } from '../types/Session';
 import { Settings } from '../types/Settings';
 
 
+
 interface HomePageProps {
   sessions: Session[];
   handleSessionEnd: (session: Session) => void;
@@ -19,7 +20,6 @@ interface HomePageProps {
   currentPeriodStartTime: string | null;
   focusPeriods: FocusPeriod[];
   breakPeriods: BreakPeriod[];
-  formatTime: (totalSeconds: number) => string;
   dailyTotals: {[date: string]: {totalFocus: number, totalBreak: number}};
   currentDate: string;
   recordCurrentPeriod: () => void;
@@ -43,7 +43,6 @@ const HomePage: React.FC<HomePageProps> = ({
   currentPeriodStartTime,
   focusPeriods,
   breakPeriods,
-  formatTime,
   recordCurrentPeriod,
   startSession,
   startBreak,
@@ -78,7 +77,6 @@ const HomePage: React.FC<HomePageProps> = ({
         currentPeriodStartTime={currentPeriodStartTime}
         focusPeriods={focusPeriods}
         breakPeriods={breakPeriods}
-        formatTime={formatTime}
         recordCurrentPeriod={recordCurrentPeriod}
         startSession={startSession}
         startBreak={startBreak}
@@ -91,7 +89,7 @@ const HomePage: React.FC<HomePageProps> = ({
       
 
       <DayVisualization sessions={currentDaySessions} /> {/* Uncommented DayVisualization */}
-      <SessionHistory sessions={currentDaySessions} todayTotals={todayTotals} formatTime={formatTime} />
+      <SessionHistory sessions={currentDaySessions} todayTotals={todayTotals} />
     </>
   );
 };

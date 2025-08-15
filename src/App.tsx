@@ -7,6 +7,7 @@ import { Session, FocusPeriod, BreakPeriod } from './types/Session';
 import { Settings } from './types/Settings';
 import './index.css';
 
+
 enum TimerStatus {
   STOPPED = 'STOPPED',
   FOCUS = 'FOCUS',
@@ -101,15 +102,7 @@ function App() {
     setCurrentPeriodStartTime(null);
   };
 
-  const formatTime = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const secs = totalSeconds % 60;
-    return [hours, minutes, secs]
-      .map((v) => (v < 10 ? '0' + v : v))
-      .filter((v, i) => v !== '00' || i > 0)
-      .join(':');
-  };
+  
 
   const recordCurrentPeriod = useCallback((): FocusPeriod | BreakPeriod | null => {
     if (currentPeriodStartTime) {
@@ -279,7 +272,7 @@ function App() {
                 currentPeriodStartTime={currentPeriodStartTime}
                 focusPeriods={focusPeriods}
                 breakPeriods={breakPeriods}
-                formatTime={formatTime}
+                
                 dailyTotals={dailyTotals}
                 currentDate={new Date().toISOString().split('T')[0]}
                 recordCurrentPeriod={recordCurrentPeriod}

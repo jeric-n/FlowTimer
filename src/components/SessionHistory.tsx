@@ -1,13 +1,14 @@
 import React from 'react';
 import { Session, FocusPeriod, BreakPeriod } from '../types/Session';
 
+import { formatTime } from '../utils/timeUtils';
+
 interface SessionHistoryProps {
   sessions: Session[];
   todayTotals: {totalFocus: number, totalBreak: number};
-  formatTime: (totalSeconds: number) => string;
 }
 
-const SessionHistory: React.FC<SessionHistoryProps> = ({ sessions, todayTotals, formatTime }) => {
+const SessionHistory: React.FC<SessionHistoryProps> = ({ sessions, todayTotals }) => {
   const formatPeriod = (period: FocusPeriod | BreakPeriod) => {
     const start = new Date(period.startTime).toLocaleTimeString();
     const end = new Date(period.endTime).toLocaleTimeString();
