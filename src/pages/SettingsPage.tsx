@@ -1,5 +1,6 @@
 import React from 'react';
 import { Settings } from '../types/Settings';
+import { BreakPreset } from '../constants';
 
 interface SettingsPageProps {
   settings: Settings;
@@ -8,7 +9,7 @@ interface SettingsPageProps {
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange }) => {
   const handlePresetChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newPreset = event.target.value as Settings['breakPreset'];
+    const newPreset = event.target.value as BreakPreset;
     onSettingsChange({ ...settings, breakPreset: newPreset });
   };
 
@@ -21,8 +22,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange 
           <label>
             <input
               type="radio"
-              value="default"
-              checked={settings.breakPreset === 'default'}
+              value={BreakPreset.DEFAULT}
+              checked={settings.breakPreset === BreakPreset.DEFAULT}
               onChange={handlePresetChange}
             />
             <strong>Default:</strong> Unlimited break time.
@@ -32,8 +33,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange 
           <label>
             <input
               type="radio"
-              value="preset2"
-              checked={settings.breakPreset === 'preset2'}
+              value={BreakPreset.PRESET2}
+              checked={settings.breakPreset === BreakPreset.PRESET2}
               onChange={handlePresetChange}
             />
             <strong>Preset 2:</strong> Minimum 1 minute, or Focus Time / 5.
@@ -43,8 +44,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange 
           <label>
             <input
               type="radio"
-              value="preset3"
-              checked={settings.breakPreset === 'preset3'}
+              value={BreakPreset.PRESET3}
+              checked={settings.breakPreset === BreakPreset.PRESET3}
               onChange={handlePresetChange}
             />
             <strong>Preset 3:</strong>

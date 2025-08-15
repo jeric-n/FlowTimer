@@ -1,3 +1,5 @@
+import { BreakPreset } from '../constants';
+
 export interface Settings {
-  breakPreset: 'default' | 'preset2' | 'preset3';
+  breakPreset: BreakPreset;
 }

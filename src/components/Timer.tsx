@@ -1,11 +1,10 @@
 import React from 'react';
-import { Session, FocusPeriod, BreakPeriod } from '../types/Session';
+import { FocusPeriod, BreakPeriod } from '../types/Session';
 
 import { Settings } from '../types/Settings';
 import { formatTime } from '../utils/timeUtils';
 
 interface TimerProps {
-  onSessionEnd: (session: Session) => void;
   timerStatus: any;
   focusTime: number;
   breakTime: number;
@@ -25,7 +24,6 @@ interface TimerProps {
 }
 
 const Timer: React.FC<TimerProps> = ({
-  onSessionEnd,
   timerStatus,
   focusTime,
   breakTime,

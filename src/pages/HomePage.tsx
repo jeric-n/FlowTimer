@@ -9,7 +9,6 @@ import { Settings } from '../types/Settings';
 
 interface HomePageProps {
   sessions: Session[];
-  handleSessionEnd: (session: Session) => void;
   // Props from App.tsx for Timer
   timerStatus: any;
   focusTime: number;
@@ -33,7 +32,6 @@ interface HomePageProps {
 
 const HomePage: React.FC<HomePageProps> = ({
   sessions,
-  handleSessionEnd,
   timerStatus,
   focusTime,
   breakTime,
@@ -67,7 +65,6 @@ const HomePage: React.FC<HomePageProps> = ({
   return (
     <>
       <Timer
-        onSessionEnd={handleSessionEnd}
         timerStatus={timerStatus}
         focusTime={focusTime}
         breakTime={breakTime}
@@ -85,8 +82,6 @@ const HomePage: React.FC<HomePageProps> = ({
         settings={settings}
         breakDuration={breakDuration}
       />
-
-      
 
       <DayVisualization sessions={currentDaySessions} /> {/* Uncommented DayVisualization */}
       <SessionHistory sessions={currentDaySessions} todayTotals={todayTotals} />
