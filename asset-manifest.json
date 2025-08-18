@@ -1,13 +1,10 @@
 {
   "files": {
-    "main.css": "/FlowTimer/static/css/main.0d3b156a.css",
-    "main.js": "/FlowTimer/static/js/main.5437b415.js",
+    "main.js": "/FlowTimer/static/js/main.018689c0.js",
     "index.html": "/FlowTimer/index.html",
-    "main.0d3b156a.css.map": "/FlowTimer/static/css/main.0d3b156a.css.map",
-    "main.5437b415.js.map": "/FlowTimer/static/js/main.5437b415.js.map"
+    "main.018689c0.js.map": "/FlowTimer/static/js/main.018689c0.js.map"
   },
   "entrypoints": [
-    "static/css/main.0d3b156a.css",
-    "static/js/main.5437b415.js"
+    "static/js/main.018689c0.js"
   ]
 }
