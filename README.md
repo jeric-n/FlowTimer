@@ -1,4 +1,4 @@
-# FlowTimer
+# FlowTimer - https://jeric-n.github.io/FlowTimer/
 
 FlowTimer is a web application designed to help users practice the FlowTime Technique, a flexible time management method that encourages working in focused bursts and taking breaks as needed. Unlike rigid techniques like Pomodoro, FlowTime adapts to your natural work rhythm.
 
